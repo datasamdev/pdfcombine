@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Merger</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 480px;
+            margin-top: 7vh;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(60,60,120,0.12);
+            padding: 2.5rem 2rem 2rem 2rem;
+            animation: fadeIn 1.2s cubic-bezier(0.4,0,0.2,1);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #3a3a3a;
+        }
+        .custom-file-input {
+            opacity: 0;
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .custom-file-label {
+            border: 2px dashed #007bff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            color: #007bff;
+            font-weight: 500;
+            background: #f0f8ff;
+            transition: background 0.3s, border-color 0.3s;
+            cursor: pointer;
+        }
+        .custom-file-label.dragover {
+            background: #e3f2fd;
+            border-color: #0056b3;
+        }
+        .btn-primary {
+            width: 100%;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 0.7rem 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,123,255,0.08);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .btn-primary:active {
+            background: #0056b3;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(40px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .file-list {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .file-list li {
+            font-size: 0.97rem;
+            color: #444;
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 0.3rem 0.7rem;
+            margin-bottom: 0.3rem;
+            animation: fadeIn 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container shadow-lg">
+        <div class="text-center mb-4">
+            <img src="https://img.icons8.com/ios-filled/100/007bff/pdf.png" alt="PDF Merger" width="64" class="mb-2" style="filter: drop-shadow(0 2px 8px #007bff33);">
+            <h2 style="font-weight:700;">PDF Merger</h2>
+            <p class="text-muted mb-0">Combine multiple PDF files into one seamless document.</p>
+        </div>
+        <form method="POST" enctype="multipart/form-data" id="pdfForm">
+            <label class="form-label">Select PDF files to merge</label>
+            <div class="mb-3 position-relative">
+                <label class="custom-file-label" id="dropLabel">
+                    <span id="labelText">Click or drag & drop your PDFs here</span>
+                    <input type="file" name="pdfs" multiple accept=".pdf" class="custom-file-input" id="pdfInput" required>
+                </label>
+            </div>
+            <ul class="file-list list-unstyled" id="fileList"></ul>
+            <button type="submit" class="btn btn-primary mt-2">Merge PDFs</button>
+        </form>
+        <div class="text-center mt-4">
+            <small class="text-muted">Made with <span style="color:#e25555;">&#10084;</span> using Flask & pypdf</small>
+        </div>
+    </div>
+    <!-- Bootstrap JS (for smooth transitions, not required for this form) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth file drag & drop and file list display
+        const pdfInput = document.getElementById('pdfInput');
+        const dropLabel = document.getElementById('dropLabel');
+        const fileList = document.getElementById('fileList');
+        const labelText = document.getElementById('labelText');
+
+        // Show selected file names
+        pdfInput.addEventListener('change', () => {
+            updateFileList(pdfInput.files);
+        });
+
+        // Drag & drop events for styling
+        dropLabel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropLabel.classList.add('dragover');
+        });
+        dropLabel.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropLabel.classList.remove('dragover');
+        });
+        dropLabel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropLabel.classList.remove('dragover');
+            pdfInput.files = e.dataTransfer.files;
+            updateFileList(pdfInput.files);
+        });
+
+        function updateFileList(files) {
+            fileList.innerHTML = '';
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const li = document.createElement('li');
+                    li.textContent = file.name;
+                    fileList.appendChild(li);
+                });
+                labelText.textContent = files.length + ' file(s) selected';
+            } else {
+                labelText.textContent = 'Click or drag & drop your PDFs here';
+            }
+        }
+    </script>
+</body>
+</html>
