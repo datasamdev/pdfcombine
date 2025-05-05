@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PDF Merger</title>
+    <title>PDF & Image Merger</title>
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -77,6 +79,22 @@
             padding: 0.3rem 0.7rem;
             margin-bottom: 0.3rem;
             animation: fadeIn 0.5s;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .instructions {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        .drag-handle {
+            cursor: grab;
+            margin-right: 0.7em;
+            color: #007bff;
+            font-size: 1.2em;
+            user-select: none;
         }
     </style>
 </head>
@@ -84,36 +102,40 @@
     <div class="container shadow-lg">
         <div class="text-center mb-4">
             <img src="https://img.icons8.com/ios-filled/100/007bff/pdf.png" alt="PDF Merger" width="64" class="mb-2" style="filter: drop-shadow(0 2px 8px #007bff33);">
-            <h2 style="font-weight:700;">PDF Merger</h2>
-            <p class="text-muted mb-0">Combine multiple PDF files into one seamless document.</p>
+            <h2 style="font-weight:700;">PDF & Image Merger</h2>
+            <p class="instructions">
+                Combine multiple <strong>PDFs</strong> and <strong>images (JPG, JPEG, PNG)</strong> into a single PDF document.<br>
+                <span style="color:#007bff;">Drag and drop to reorder files before merging.</span>
+            </p>
         </div>
         <form method="POST" enctype="multipart/form-data" id="pdfForm">
-            <label class="form-label">Select PDF files to merge</label>
+            <label class="form-label">Select PDF and image files to merge</label>
             <div class="mb-3 position-relative">
                 <label class="custom-file-label" id="dropLabel">
-                    <span id="labelText">Click or drag & drop your PDFs here</span>
-                    <input type="file" name="pdfs" multiple accept=".pdf" class="custom-file-input" id="pdfInput" required>
+                    <span id="labelText">Click or drag & drop your PDFs and images here</span>
+                    <input type="file" name="files" multiple accept=".pdf,.jpg,.jpeg,.png" class="custom-file-input" id="pdfInput" required>
                 </label>
             </div>
             <ul class="file-list list-unstyled" id="fileList"></ul>
-            <button type="submit" class="btn btn-primary mt-2">Merge PDFs</button>
+            <input type="hidden" name="order" id="fileOrder">
+            <button type="submit" class="btn btn-primary mt-2">Merge Files</button>
         </form>
         <div class="text-center mt-4">
-            <small class="text-muted">Made with <span style="color:#e25555;">&#10084;</span> using Flask & pypdf</small>
+            <small class="text-muted">Made with <span style="color:#e25555;">&#10084;</span> using Flask, pypdf & Pillow</small>
         </div>
     </div>
-    <!-- Bootstrap JS (for smooth transitions, not required for this form) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Smooth file drag & drop and file list display
         const pdfInput = document.getElementById('pdfInput');
-        const dropLabel = document.getElementById('dropLabel');
         const fileList = document.getElementById('fileList');
+        const fileOrder = document.getElementById('fileOrder');
+        const dropLabel = document.getElementById('dropLabel');
         const labelText = document.getElementById('labelText');
+        let filesArray = [];
 
-        // Show selected file names
         pdfInput.addEventListener('change', () => {
-            updateFileList(pdfInput.files);
+            filesArray = Array.from(pdfInput.files);
+            renderFileList();
         });
 
         // Drag & drop events for styling
@@ -129,22 +151,68 @@
             e.preventDefault();
             dropLabel.classList.remove('dragover');
             pdfInput.files = e.dataTransfer.files;
-            updateFileList(pdfInput.files);
+            filesArray = Array.from(pdfInput.files);
+            renderFileList();
         });
 
-        function updateFileList(files) {
+        function renderFileList() {
             fileList.innerHTML = '';
-            if (files.length > 0) {
-                Array.from(files).forEach(file => {
+            if (filesArray.length > 0) {
+                filesArray.forEach((file, idx) => {
                     const li = document.createElement('li');
-                    li.textContent = file.name;
+                    li.className = 'item d-flex align-items-center';
+                    li.setAttribute('data-index', idx);
+                    li.innerHTML = `<span class="drag-handle">&#9776;</span> ${file.name}`;
                     fileList.appendChild(li);
                 });
-                labelText.textContent = files.length + ' file(s) selected';
+                labelText.textContent = filesArray.length + ' file(s) selected';
             } else {
-                labelText.textContent = 'Click or drag & drop your PDFs here';
+                labelText.textContent = 'Click or drag & drop your PDFs and images here';
             }
+            updateOrderInput();
         }
+
+        // Initialize SortableJS for file reordering
+        new Sortable(fileList, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: function () {
+                // Rearrange filesArray according to new order
+                const newOrder = [];
+                fileList.querySelectorAll('li').forEach(li => {
+                    newOrder.push(filesArray[li.getAttribute('data-index')]);
+                });
+                filesArray = newOrder;
+                renderFileList();
+            }
+        });
+
+        function updateOrderInput() {
+            fileOrder.value = filesArray.map(f => f.name).join(',');
+        }
+
+        // On form submit, send files in the correct order using FormData
+        document.getElementById('pdfForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (filesArray.length === 0) return;
+            const formData = new FormData();
+            filesArray.forEach(f => formData.append('files', f));
+            formData.append('order', filesArray.map(f => f.name).join(','));
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.blob())
+              .then(blob => {
+                // Download the merged PDF
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'merged.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              });
+        });
     </script>
 </body>
 </html>
