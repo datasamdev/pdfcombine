@@ -18,7 +18,7 @@
             min-height: 100vh;
         }
         .main-card {
-            max-width: 440px;
+            max-width: 540px;
             margin: 7vh auto 0 auto;
             background: #fff;
             border-radius: 2.1rem;
@@ -70,6 +70,9 @@
             margin-bottom: 0.4rem;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .custom-file-label.dragover {
             background: #e3f2fd;
@@ -156,48 +159,29 @@
         }
         .split-option-row {
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .split-option-row label {
-            margin-left: 0.2rem;
             font-weight: 500;
+            margin-bottom: 0;
         }
         .split-option-row input[type="text"], .split-option-row input[type="number"] {
             width: 90px;
-            display: inline-block;
             margin-left: 0.5rem;
+            margin-bottom: 0;
+            display: inline-block;
+            vertical-align: middle;
         }
         .main-card small {
             font-size: 0.98em;
-        }
-        .spinner-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(255,255,255,0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            display: none;
-        }
-        .toast-container {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 1100;
-        }
-        .toast.show {
-            opacity: 1;
-            transition: opacity 0.5s;
-        }
-        .toast {
-            opacity: 0;
-            transition: opacity 0.5s;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(40px);}
             to { opacity: 1; transform: translateY(0);}
         }
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .main-card {
                 max-width: 99vw;
                 padding: 1.2rem 0.2rem 1.2rem 0.2rem;
@@ -207,23 +191,6 @@
     </style>
 </head>
 <body>
-    <!-- Progress Spinner Overlay -->
-    <div class="spinner-overlay" id="spinnerOverlay">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Processing...</span>
-        </div>
-    </div>
-    <!-- Toast for success -->
-    <div class="toast-container" id="toastContainer">
-        <div class="toast align-items-center text-bg-success border-0" id="successToast" role="alert">
-            <div class="d-flex">
-                <div class="toast-body" id="toastMsg">
-                    Success! Your file is ready.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="hideToast()" aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
     <div class="main-card shadow-lg">
         <div class="text-center mb-3">
             <img src="https://img.icons8.com/ios-filled/100/007bff/pdf.png" alt="PDF Merger" class="logo">
@@ -245,11 +212,12 @@
             <!-- Merge Tab -->
             <div class="tab-pane fade show active" id="merge" role="tabpanel" aria-labelledby="merge-tab">
                 <form method="POST" enctype="multipart/form-data" id="pdfForm" autocomplete="off">
-                    <label class="form-label mt-2">Select PDF and image files to merge</label>
+                    <label class="form-label mt-2 mb-1">Select PDF and image files to merge</label>
                     <div class="mb-2 position-relative">
                         <label class="custom-file-label" id="dropLabel">
-                            <span id="labelText">Click or drag &amp; drop your PDFs and images here</span>
+                            <span id="labelText" style="margin-bottom:6px;">Click or drag &amp; drop your PDFs and images here</span>
                             <input type="file" name="files" multiple accept=".pdf,.jpg,.jpeg,.png" class="custom-file-input" id="pdfInput" required tabindex="0">
+                            <span id="fileCount" style="color:#007bff; font-size:0.96em; margin-top:4px;"></span>
                         </label>
                     </div>
                     <ul class="file-list list-unstyled" id="fileList"></ul>
@@ -260,25 +228,25 @@
             <!-- Split Tab -->
             <div class="tab-pane fade" id="split" role="tabpanel" aria-labelledby="split-tab">
                 <form method="POST" enctype="multipart/form-data" id="splitForm" action="/split" autocomplete="off">
-                    <label class="form-label mt-2">Select a PDF to split</label>
+                    <label class="form-label mt-2 mb-1">Select a PDF to split</label>
                     <div class="mb-3">
                         <input type="file" name="pdf" accept=".pdf" class="form-control" id="splitPdfInput" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Split Options</label>
+                        <label class="form-label mb-2">Split Options</label>
                         <div class="split-option-row">
                             <input type="radio" name="split_type" value="all_pages" id="split_all" checked>
-                            <label for="split_all">Split every page (each page as a separate PDF)</label>
+                            <label for="split_all" class="mb-0">Split every page (each page as a separate PDF)</label>
                         </div>
                         <div class="split-option-row">
                             <input type="radio" name="split_type" value="range" id="split_range">
-                            <label for="split_range">Extract page range:</label>
-                            <input type="text" name="page_range" id="pageRangeInput" placeholder="e.g. 3-7" class="form-control form-control-sm d-inline-block" disabled>
+                            <label for="split_range" class="mb-0">Extract page range:</label>
+                            <input type="text" name="page_range" id="pageRangeInput" placeholder="e.g. 3-7" class="form-control form-control-sm" disabled>
                         </div>
                         <div class="split-option-row">
                             <input type="radio" name="split_type" value="every_n" id="split_n">
-                            <label for="split_n">Split every</label>
-                            <input type="number" name="every_n" id="everyNInput" min="1" placeholder="N" class="form-control form-control-sm d-inline-block" disabled>
+                            <label for="split_n" class="mb-0">Split every</label>
+                            <input type="number" name="every_n" id="everyNInput" min="1" placeholder="N" class="form-control form-control-sm" disabled>
                             <span>pages</span>
                         </div>
                     </div>
@@ -298,18 +266,13 @@
         const fileOrder = document.getElementById('fileOrder');
         const dropLabel = document.getElementById('dropLabel');
         const labelText = document.getElementById('labelText');
-        const spinner = document.getElementById('spinnerOverlay');
-        const toastContainer = document.getElementById('toastContainer');
-        const successToast = document.getElementById('successToast');
-        const toastMsg = document.getElementById('toastMsg');
+        const fileCount = document.getElementById('fileCount');
         let filesArray = [];
 
         pdfInput.addEventListener('change', () => {
             filesArray = Array.from(pdfInput.files);
             renderFileList();
         });
-
-        // Hide native file input visually (handled in CSS above)
 
         // Drag & drop events for styling
         dropLabel.addEventListener('dragover', (e) => {
@@ -331,6 +294,7 @@
         function renderFileList() {
             fileList.innerHTML = '';
             if (filesArray.length > 0) {
+                fileCount.textContent = filesArray.length === 1 ? "1 file selected" : `${filesArray.length} files selected`;
                 filesArray.forEach((file, idx) => {
                     const li = document.createElement('li');
                     li.className = 'item d-flex align-items-center';
@@ -395,8 +359,8 @@
 
                     fileList.appendChild(li);
                 });
-                labelText.textContent = filesArray.length + ' file(s) selected';
             } else {
+                fileCount.textContent = "";
                 labelText.textContent = 'Click or drag & drop your PDFs and images here';
             }
             updateOrderInput();
@@ -421,49 +385,6 @@
             fileOrder.value = filesArray.map(f => f.name).join(',');
         }
 
-        // Show/hide spinner
-        function showSpinner() { spinner.style.display = 'flex'; }
-        function hideSpinner() { spinner.style.display = 'none'; }
-
-        // Show toast
-        function showToast(message) {
-            toastMsg.textContent = message;
-            successToast.classList.add('show');
-            setTimeout(hideToast, 3500);
-        }
-        function hideToast() {
-            successToast.classList.remove('show');
-        }
-
-        // On form submit, send files in the correct order using FormData
-        document.getElementById('pdfForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (filesArray.length === 0) return;
-            showSpinner();
-            const formData = new FormData();
-            filesArray.forEach(f => formData.append('files', f));
-            formData.append('order', filesArray.map(f => f.name).join(','));
-            fetch('/', {
-                method: 'POST',
-                body: formData
-            }).then(response => response.blob())
-              .then(blob => {
-                hideSpinner();
-                showToast('Merged PDF is ready!');
-                // Download the merged PDF
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'merged.pdf';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-              }).catch(() => {
-                hideSpinner();
-                showToast('An error occurred. Please try again.');
-              });
-        });
-
         // --- Split Tab JS ---
         // Enable/disable inputs based on split type
         const splitAll = document.getElementById('split_all');
@@ -471,8 +392,6 @@
         const splitN = document.getElementById('split_n');
         const pageRangeInput = document.getElementById('pageRangeInput');
         const everyNInput = document.getElementById('everyNInput');
-        const splitForm = document.getElementById('splitForm');
-        const splitBtn = document.getElementById('splitBtn');
 
         function updateSplitInputs() {
             pageRangeInput.disabled = !splitRange.checked;
@@ -481,12 +400,6 @@
         splitAll.addEventListener('change', updateSplitInputs);
         splitRange.addEventListener('change', updateSplitInputs);
         splitN.addEventListener('change', updateSplitInputs);
-
-        splitForm.addEventListener('submit', function(e) {
-            showSpinner();
-            // Let the browser handle the download, just show spinner
-            setTimeout(() => hideSpinner(), 4000); // fallback in case of slow download
-        });
     </script>
 </body>
 </html>
