@@ -96,6 +96,21 @@
             font-size: 1.2em;
             user-select: none;
         }
+        .file-preview-img {
+            height: 38px;
+            width: auto;
+            margin-right: 10px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .file-preview-icon {
+            height: 32px;
+            width: 32px;
+            margin-right: 10px;
+        }
+        .btn-remove {
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
@@ -105,7 +120,7 @@
             <h2 style="font-weight:700;">PDF & Image Merger</h2>
             <p class="instructions">
                 Combine multiple <strong>PDFs</strong> and <strong>images (JPG, JPEG, PNG)</strong> into a single PDF document.<br>
-                <span style="color:#007bff;">Drag and drop to reorder files before merging.</span>
+                <span style="color:#007bff;">Preview, remove, and reorder files before merging.</span>
             </p>
         </div>
         <form method="POST" enctype="multipart/form-data" id="pdfForm">
@@ -162,7 +177,46 @@
                     const li = document.createElement('li');
                     li.className = 'item d-flex align-items-center';
                     li.setAttribute('data-index', idx);
-                    li.innerHTML = `<span class="drag-handle">&#9776;</span> ${file.name}`;
+
+                    // Drag handle
+                    const dragHandle = document.createElement('span');
+                    dragHandle.className = 'drag-handle';
+                    dragHandle.innerHTML = '&#9776;';
+                    dragHandle.style.marginRight = '8px';
+
+                    // Preview
+                    let preview;
+                    if (file.type.startsWith('image/')) {
+                        preview = document.createElement('img');
+                        preview.className = 'file-preview-img';
+                        preview.src = URL.createObjectURL(file);
+                        preview.alt = 'Image preview';
+                    } else if (file.name.toLowerCase().endsWith('.pdf')) {
+                        preview = document.createElement('img');
+                        preview.className = 'file-preview-icon';
+                        preview.src = "https://img.icons8.com/ios-filled/32/007bff/pdf.png";
+                        preview.alt = "PDF";
+                    }
+
+                    // File name
+                    const fileName = document.createElement('span');
+                    fileName.textContent = file.name;
+
+                    // Remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-sm btn-outline-danger btn-remove ms-auto';
+                    removeBtn.textContent = 'Remove';
+                    removeBtn.onclick = () => {
+                        filesArray.splice(idx, 1);
+                        renderFileList();
+                    };
+
+                    li.appendChild(dragHandle);
+                    if (preview) li.appendChild(preview);
+                    li.appendChild(fileName);
+                    li.appendChild(removeBtn);
+
                     fileList.appendChild(li);
                 });
                 labelText.textContent = filesArray.length + ' file(s) selected';
