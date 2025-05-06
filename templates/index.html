@@ -2,92 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PDF & Image Merger</title>
-    <!-- Bootstrap 5 CDN -->
+    <title>PDF Tools: Merge & Split</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <!-- Google Fonts (Inter for modern look) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- PDF.js for PDF thumbnails -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
     <style>
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(120deg, #f5f7fa 0%, #e9eff7 100%);
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
         }
-        .container {
-            max-width: 480px;
-            margin-top: 7vh;
+        .main-card {
+            max-width: 440px;
+            margin: 7vh auto 0 auto;
             background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 8px 32px rgba(60,60,120,0.12);
-            padding: 2.5rem 2rem 2rem 2rem;
-            animation: fadeIn 1.2s cubic-bezier(0.4,0,0.2,1);
+            border-radius: 2.1rem;
+            box-shadow: 0 8px 32px rgba(60,60,120,0.18);
+            padding: 2.7rem 2rem 2.2rem 2rem;
+            animation: fadeIn 1.1s cubic-bezier(0.4,0,0.2,1);
         }
-        .form-label {
+        .main-card img.logo {
+            width: 56px;
+            margin-bottom: 0.5rem;
+        }
+        .main-card h2 {
+            font-weight: 700;
+            font-size: 1.7rem;
+        }
+        .instructions {
+            font-size: 1.04rem;
+            color: #6c757d;
+            margin-bottom: 1.1rem;
+        }
+        .nav-tabs {
+            border: none;
+            margin-bottom: 1.2rem;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #007bff;
             font-weight: 600;
-            color: #3a3a3a;
+            background: none;
+            border-radius: 0.8rem 0.8rem 0 0;
+            transition: background 0.2s, color 0.2s;
         }
-        .custom-file-input {
-            opacity: 0;
-            position: absolute;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
+        .nav-tabs .nav-link.active {
+            background: #eaf4ff;
+            color: #0056b3;
+            border-bottom: 2px solid #007bff;
         }
         .custom-file-label {
             border: 2px dashed #007bff;
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 1.1rem;
+            padding: 1.2rem;
             text-align: center;
             color: #007bff;
             font-weight: 500;
             background: #f0f8ff;
-            transition: background 0.3s, border-color 0.3s;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.2s;
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(60,60,120,0.06);
+            margin-bottom: 0.4rem;
+            position: relative;
+            overflow: hidden;
         }
         .custom-file-label.dragover {
             background: #e3f2fd;
             border-color: #0056b3;
+            box-shadow: 0 4px 16px rgba(0,123,255,0.13);
+            transform: scale(1.02);
         }
-        .btn-primary {
-            width: 100%;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 0.7rem 0;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0,123,255,0.08);
-            transition: background 0.3s, box-shadow 0.3s;
-        }
-        .btn-primary:active {
-            background: #0056b3;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(40px);}
-            to { opacity: 1; transform: translateY(0);}
+        .custom-file-input {
+            opacity: 0;
+            position: absolute;
+            left: 0; top: 0; width: 100%; height: 100%;
+            cursor: pointer;
+            z-index: 2;
         }
         .file-list {
-            margin-top: 1rem;
-            margin-bottom: 1rem;
+            margin-top: 0.7rem;
+            margin-bottom: 0.7rem;
         }
         .file-list li {
             font-size: 0.97rem;
             color: #444;
             background: #f8f9fa;
-            border-radius: 6px;
-            padding: 0.3rem 0.7rem;
-            margin-bottom: 0.3rem;
+            border-radius: 0.6rem;
+            padding: 0.38rem 0.7rem;
+            margin-bottom: 0.35rem;
             animation: fadeIn 0.5s;
             cursor: grab;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            box-shadow: 0 1px 4px #007bff11;
+            transition: box-shadow 0.18s, transform 0.18s;
         }
-        .instructions {
-            font-size: 1rem;
-            color: #6c757d;
-            margin-bottom: 1rem;
+        .file-list li:hover {
+            box-shadow: 0 2px 8px #007bff22;
+            transform: translateY(-1px) scale(1.01);
         }
         .drag-handle {
             cursor: grab;
@@ -110,48 +128,188 @@
         }
         .btn-remove {
             margin-left: auto;
+            display: flex;
+            align-items: center;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.98em;
+        }
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            font-size: 1.18rem;
+            padding: 0.95rem 0;
+            border-radius: 1.2rem;
+            box-shadow: 0 6px 24px rgba(0,123,255,0.13);
+            transition: background 0.3s, box-shadow 0.3s, transform 0.15s;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(90deg, #0056b3 0%, #007bff 100%);
+            box-shadow: 0 8px 32px rgba(0,123,255,0.19);
+            transform: translateY(-1px) scale(1.03);
+        }
+        .tab-content {
+            margin-top: 1.3rem;
+        }
+        .split-option-row {
+            margin-bottom: 0.5rem;
+        }
+        .split-option-row label {
+            margin-left: 0.2rem;
+            font-weight: 500;
+        }
+        .split-option-row input[type="text"], .split-option-row input[type="number"] {
+            width: 90px;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        .main-card small {
+            font-size: 0.98em;
+        }
+        .spinner-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 1100;
+        }
+        .toast.show {
+            opacity: 1;
+            transition: opacity 0.5s;
+        }
+        .toast {
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(40px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        @media (max-width: 600px) {
+            .main-card {
+                max-width: 99vw;
+                padding: 1.2rem 0.2rem 1.2rem 0.2rem;
+                border-radius: 1.1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container shadow-lg">
-        <div class="text-center mb-4">
-            <img src="https://img.icons8.com/ios-filled/100/007bff/pdf.png" alt="PDF Merger" width="64" class="mb-2" style="filter: drop-shadow(0 2px 8px #007bff33);">
-            <h2 style="font-weight:700;">PDF & Image Merger</h2>
+    <!-- Progress Spinner Overlay -->
+    <div class="spinner-overlay" id="spinnerOverlay">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Processing...</span>
+        </div>
+    </div>
+    <!-- Toast for success -->
+    <div class="toast-container" id="toastContainer">
+        <div class="toast align-items-center text-bg-success border-0" id="successToast" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMsg">
+                    Success! Your file is ready.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="hideToast()" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    <div class="main-card shadow-lg">
+        <div class="text-center mb-3">
+            <img src="https://img.icons8.com/ios-filled/100/007bff/pdf.png" alt="PDF Merger" class="logo">
+            <h2>PDF Tools: Merge &amp; Split</h2>
             <p class="instructions">
-                Combine multiple <strong>PDFs</strong> and <strong>images (JPG, JPEG, PNG)</strong> into a single PDF document.<br>
+                Merge PDFs/images, or split a PDF into multiple files.<br>
                 <span style="color:#007bff;">Preview, remove, and reorder files before merging.</span>
             </p>
         </div>
-        <form method="POST" enctype="multipart/form-data" id="pdfForm">
-            <label class="form-label">Select PDF and image files to merge</label>
-            <div class="mb-3 position-relative">
-                <label class="custom-file-label" id="dropLabel">
-                    <span id="labelText">Click or drag & drop your PDFs and images here</span>
-                    <input type="file" name="files" multiple accept=".pdf,.jpg,.jpeg,.png" class="custom-file-input" id="pdfInput" required>
-                </label>
+        <ul class="nav nav-tabs justify-content-center" id="pdfTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="merge-tab" data-bs-toggle="tab" data-bs-target="#merge" type="button" role="tab" aria-controls="merge" aria-selected="true">Merge PDF &amp; Images</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="split-tab" data-bs-toggle="tab" data-bs-target="#split" type="button" role="tab" aria-controls="split" aria-selected="false">Split PDF</button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <!-- Merge Tab -->
+            <div class="tab-pane fade show active" id="merge" role="tabpanel" aria-labelledby="merge-tab">
+                <form method="POST" enctype="multipart/form-data" id="pdfForm" autocomplete="off">
+                    <label class="form-label mt-2">Select PDF and image files to merge</label>
+                    <div class="mb-2 position-relative">
+                        <label class="custom-file-label" id="dropLabel">
+                            <span id="labelText">Click or drag &amp; drop your PDFs and images here</span>
+                            <input type="file" name="files" multiple accept=".pdf,.jpg,.jpeg,.png" class="custom-file-input" id="pdfInput" required tabindex="0">
+                        </label>
+                    </div>
+                    <ul class="file-list list-unstyled" id="fileList"></ul>
+                    <input type="hidden" name="order" id="fileOrder">
+                    <button type="submit" class="btn btn-primary mt-2" id="mergeBtn">Merge Files</button>
+                </form>
             </div>
-            <ul class="file-list list-unstyled" id="fileList"></ul>
-            <input type="hidden" name="order" id="fileOrder">
-            <button type="submit" class="btn btn-primary mt-2">Merge Files</button>
-        </form>
+            <!-- Split Tab -->
+            <div class="tab-pane fade" id="split" role="tabpanel" aria-labelledby="split-tab">
+                <form method="POST" enctype="multipart/form-data" id="splitForm" action="/split" autocomplete="off">
+                    <label class="form-label mt-2">Select a PDF to split</label>
+                    <div class="mb-3">
+                        <input type="file" name="pdf" accept=".pdf" class="form-control" id="splitPdfInput" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Split Options</label>
+                        <div class="split-option-row">
+                            <input type="radio" name="split_type" value="all_pages" id="split_all" checked>
+                            <label for="split_all">Split every page (each page as a separate PDF)</label>
+                        </div>
+                        <div class="split-option-row">
+                            <input type="radio" name="split_type" value="range" id="split_range">
+                            <label for="split_range">Extract page range:</label>
+                            <input type="text" name="page_range" id="pageRangeInput" placeholder="e.g. 3-7" class="form-control form-control-sm d-inline-block" disabled>
+                        </div>
+                        <div class="split-option-row">
+                            <input type="radio" name="split_type" value="every_n" id="split_n">
+                            <label for="split_n">Split every</label>
+                            <input type="number" name="every_n" id="everyNInput" min="1" placeholder="N" class="form-control form-control-sm d-inline-block" disabled>
+                            <span>pages</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2" id="splitBtn">Split PDF</button>
+                </form>
+            </div>
+        </div>
         <div class="text-center mt-4">
-            <small class="text-muted">Made with <span style="color:#e25555;">&#10084;</span> using Flask, pypdf & Pillow</small>
+            <small class="text-muted">Made with <span style="color:#e25555;">&#10084;</span> using Flask, pypdf &amp; Pillow</small>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // --- Merge Tab JS ---
         const pdfInput = document.getElementById('pdfInput');
         const fileList = document.getElementById('fileList');
         const fileOrder = document.getElementById('fileOrder');
         const dropLabel = document.getElementById('dropLabel');
         const labelText = document.getElementById('labelText');
+        const spinner = document.getElementById('spinnerOverlay');
+        const toastContainer = document.getElementById('toastContainer');
+        const successToast = document.getElementById('successToast');
+        const toastMsg = document.getElementById('toastMsg');
         let filesArray = [];
 
         pdfInput.addEventListener('change', () => {
             filesArray = Array.from(pdfInput.files);
             renderFileList();
         });
+
+        // Hide native file input visually (handled in CSS above)
 
         // Drag & drop events for styling
         dropLabel.addEventListener('dragover', (e) => {
@@ -192,20 +350,38 @@
                         preview.src = URL.createObjectURL(file);
                         preview.alt = 'Image preview';
                     } else if (file.name.toLowerCase().endsWith('.pdf')) {
-                        preview = document.createElement('img');
-                        preview.className = 'file-preview-icon';
-                        preview.src = "https://img.icons8.com/ios-filled/32/007bff/pdf.png";
-                        preview.alt = "PDF";
+                        preview = document.createElement('canvas');
+                        preview.className = 'file-preview-img';
+                        preview.style.height = '38px';
+                        preview.style.width = 'auto';
+                        preview.style.marginRight = '10px';
+                        // Render PDF first page as thumbnail
+                        const fileReader = new FileReader();
+                        fileReader.onload = function() {
+                            const typedarray = new Uint8Array(this.result);
+                            pdfjsLib.getDocument({data: typedarray}).promise.then(pdf => {
+                                pdf.getPage(1).then(page => {
+                                    const scale = 0.25;
+                                    const viewport = page.getViewport({scale: scale});
+                                    preview.width = viewport.width;
+                                    preview.height = viewport.height;
+                                    const context = preview.getContext('2d');
+                                    page.render({canvasContext: context, viewport: viewport});
+                                });
+                            });
+                        };
+                        fileReader.readAsArrayBuffer(file);
                     }
 
                     // File name
                     const fileName = document.createElement('span');
                     fileName.textContent = file.name;
 
-                    // Remove button
+                    // Remove button (text)
                     const removeBtn = document.createElement('button');
                     removeBtn.type = 'button';
-                    removeBtn.className = 'btn btn-sm btn-outline-danger btn-remove ms-auto';
+                    removeBtn.className = 'btn btn-sm btn-outline-danger btn-remove ms-auto d-flex align-items-center';
+                    removeBtn.title = 'Remove this file';
                     removeBtn.textContent = 'Remove';
                     removeBtn.onclick = () => {
                         filesArray.splice(idx, 1);
@@ -245,10 +421,25 @@
             fileOrder.value = filesArray.map(f => f.name).join(',');
         }
 
+        // Show/hide spinner
+        function showSpinner() { spinner.style.display = 'flex'; }
+        function hideSpinner() { spinner.style.display = 'none'; }
+
+        // Show toast
+        function showToast(message) {
+            toastMsg.textContent = message;
+            successToast.classList.add('show');
+            setTimeout(hideToast, 3500);
+        }
+        function hideToast() {
+            successToast.classList.remove('show');
+        }
+
         // On form submit, send files in the correct order using FormData
         document.getElementById('pdfForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (filesArray.length === 0) return;
+            showSpinner();
             const formData = new FormData();
             filesArray.forEach(f => formData.append('files', f));
             formData.append('order', filesArray.map(f => f.name).join(','));
@@ -257,6 +448,8 @@
                 body: formData
             }).then(response => response.blob())
               .then(blob => {
+                hideSpinner();
+                showToast('Merged PDF is ready!');
                 // Download the merged PDF
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -265,7 +458,34 @@
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
+              }).catch(() => {
+                hideSpinner();
+                showToast('An error occurred. Please try again.');
               });
+        });
+
+        // --- Split Tab JS ---
+        // Enable/disable inputs based on split type
+        const splitAll = document.getElementById('split_all');
+        const splitRange = document.getElementById('split_range');
+        const splitN = document.getElementById('split_n');
+        const pageRangeInput = document.getElementById('pageRangeInput');
+        const everyNInput = document.getElementById('everyNInput');
+        const splitForm = document.getElementById('splitForm');
+        const splitBtn = document.getElementById('splitBtn');
+
+        function updateSplitInputs() {
+            pageRangeInput.disabled = !splitRange.checked;
+            everyNInput.disabled = !splitN.checked;
+        }
+        splitAll.addEventListener('change', updateSplitInputs);
+        splitRange.addEventListener('change', updateSplitInputs);
+        splitN.addEventListener('change', updateSplitInputs);
+
+        splitForm.addEventListener('submit', function(e) {
+            showSpinner();
+            // Let the browser handle the download, just show spinner
+            setTimeout(() => hideSpinner(), 4000); // fallback in case of slow download
         });
     </script>
 </body>
